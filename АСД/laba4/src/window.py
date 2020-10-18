@@ -113,6 +113,7 @@ class Ui_MainWindow(QWidget):
         value = self.lineEdit_2.text()
         key = self.get_text()
         self.map = self.hash.add(key, value)
+
         self.plot_table(self.map)
 
 

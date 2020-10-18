@@ -5,6 +5,8 @@
 
 # Метод разрешения конфликтов (1): открытого перемешивания
 # Метод определения вторичного индекса (2): линейных проб с простым шагом р
+from PyQt5.QtWidgets import QMessageBox
+
 
 class HashMap:
     def __init__(self):
@@ -21,6 +23,15 @@ class HashMap:
         return hash % self.size
 
     def add(self, key, value):
+        all_keys = self.keys()
+        for i in all_keys:
+            if key == i[0]:
+                error_dialog = QMessageBox()
+                error_dialog.setWindowTitle("Ошибка")
+                error_dialog.setText("Такой ключ уже существует")
+                error_dialog.setIcon(QMessageBox.Critical)
+                error_dialog.exec_()
+                return self.map
         key_hash = self._get_hash(key)
         key_value = [key, value, key_hash]
         hash2 = key_hash
@@ -38,7 +49,6 @@ class HashMap:
                     if item is not None:
                         counter += 1
                         if counter == 7:
-                            print("фул таблица")
                             return 0
 
             # for pair in self.map[key_hash]:
