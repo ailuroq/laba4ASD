@@ -57,6 +57,7 @@ class HashMap:
 
     def get_value(self, key):
         key_hash = self._get_hash(key)
+        hash2 = key_hash
         if self.map[key_hash] is not None:
             array = self.map[key_hash][0]
             if array[0] == key:
@@ -64,16 +65,25 @@ class HashMap:
             else:
                 while True:
                     try:
-                        hash2 = self.secondary_hash(key_hash)
+                        hash2 = self.secondary_hash(hash2)
                         array = self.map[hash2][0]
                         if array[0] == key:
                             return array
                     except:
                         return 0
+        else:
+            while True:
+                try:
+                    hash2 = self.secondary_hash(hash2)
+                    array = self.map[hash2][0]
+                    if array[0] == key:
+                        return array
+                except:
+                    return 0
 
     def delete(self, key):
         key_hash = self._get_hash(key)
-
+        hash2 = key_hash
         if self.map[key_hash] is not None:
             array = self.map[key_hash][0]
             if array[0] == key:
@@ -83,17 +93,32 @@ class HashMap:
                 while True:
                     try:
                         counter = 0
-                        hash2 = self.secondary_hash(key_hash)
+                        hash2 = self.secondary_hash(hash2)
                         array = self.map[hash2][0]
                         if array[0] == key:
                             self.map[hash2] = None
                             return self.map
                         else:
-                            counter+=1
+                            counter += 1
                             if counter == 7:
                                 return 0
                     except:
                         return 0
+        else:
+            while True:
+                try:
+                    counter = 0
+                    hash2 = self.secondary_hash(hash2)
+                    array = self.map[hash2][0]
+                    if array[0] == key:
+                        self.map[hash2] = None
+                        return self.map
+                    else:
+                        counter += 1
+                        if counter == 7:
+                            return 0
+                except:
+                    return 0
 
     def keys(self):
         arr = []
