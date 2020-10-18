@@ -9,17 +9,25 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QInputDialog, QLineEdit, QWidget, QTableWidgetItem, QShortcut, QMessageBox
+
+from src.hashmap import HashMap
 
 
-class Ui_MainWindow(object):
+class Ui_MainWindow(QWidget):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(880, 592)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.tableView = QtWidgets.QTableView(self.centralwidget)
-        self.tableView.setGeometry(QtCore.QRect(10, 10, 601, 521))
-        self.tableView.setObjectName("tableView")
+        self.tableWidget = QtWidgets.QTableWidget(7, 3, self.centralwidget)
+        self.tableWidget.setGeometry(QtCore.QRect(10, 10, 601, 521))
+        self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setEnabled(True)
+        self.tableWidget.setHorizontalHeaderLabels(["Ключ", "Значение", "Хеш"])
+        self.header = self.tableWidget.horizontalHeader()
+        self.header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(680, 40, 181, 31))
         font = QtGui.QFont()
@@ -28,6 +36,10 @@ class Ui_MainWindow(object):
         self.label.setObjectName("label")
         self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit.setGeometry(QtCore.QRect(640, 70, 211, 41))
+        self.lineEdit.setObjectName("lineEdit")
+        font = QtGui.QFont()
+        font.setPointSize(11)
+        self.lineEdit.setFont(font)
         self.lineEdit.setObjectName("lineEdit")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(640, 120, 211, 28))
@@ -54,11 +66,17 @@ class Ui_MainWindow(object):
         self.pushButton_2.setFont(font)
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_3.setGeometry(QtCore.QRect(640, 330, 211, 28))
+        self.pushButton_3.setGeometry(QtCore.QRect(640, 155, 211, 28))
         font = QtGui.QFont()
         font.setPointSize(11)
         self.pushButton_3.setFont(font)
         self.pushButton_3.setObjectName("pushButton_3")
+        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_4.setGeometry(QtCore.QRect(640, 330, 211, 28))
+        font = QtGui.QFont()
+        font.setPointSize(11)
+        self.pushButton_4.setFont(font)
+        self.pushButton_4.setObjectName("pushButton_4")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 880, 26))
@@ -67,7 +85,8 @@ class Ui_MainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
+        self.hash = HashMap()
+        self.map = self.hash.get_map()
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -79,10 +98,84 @@ class Ui_MainWindow(object):
         self.label_2.setText(_translate("MainWindow", "Столица (значение)"))
         self.pushButton_2.setText(_translate("MainWindow", "Добавить запись"))
         self.pushButton_3.setText(_translate("MainWindow", "Удалить запись"))
+        self.pushButton_4.setText(_translate("MainWindow", "Очистить таблицу"))
+        self.pushButton.clicked.connect(self.get_value_by_key)
+        self.pushButton_2.clicked.connect(self.add_entry)
+        self.pushButton_4.clicked.connect(self.clear_table)
+        self.pushButton_3.clicked.connect(self.delete)
+
+    def get_text(self):
+        text, okPressed = QInputDialog.getText(self, "Ключ", "Введите ключ", QLineEdit.Normal, "")
+        if okPressed:
+            return text
+
+    def add_entry(self):
+        value = self.lineEdit_2.text()
+        key = self.get_text()
+        self.map = self.hash.add(key, value)
+        self.plot_table(self.map)
+
+
+    def plot_table(self, map):
+        if map != 0:
+            for i in range(0, 7):
+                if map[i] is not None:
+                    array1 = map[i][0]
+                    if array1 is not None:
+                        for j in range(0, 3):
+                            self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(array1[j])))
+                else:
+                    for j in range(0, 3):
+                        self.tableWidget.setItem(i,j,QtWidgets.QTableWidgetItem(str('')))
+        else:
+            print("удалили")
+            error_dialog = QMessageBox()
+            error_dialog.setWindowTitle("Нет места")
+            error_dialog.setText("Таблица переполнена")
+            error_dialog.setIcon(QMessageBox.Critical)
+            error_dialog.exec_()
+
+
+    def get_value_by_key(self):
+        key = self.lineEdit.text()
+        value = self.hash.get_value(key)
+        if value is not None:
+            dialog = QMessageBox()
+            dialog.setWindowTitle("Найденный элемент")
+            dialog.setText(str(value))
+            dialog.exec_()
+            print(value)
+        else:
+            error_dialog = QMessageBox()
+            error_dialog.setWindowTitle("Ошибка")
+            error_dialog.setText("Такого ключа не существует")
+            error_dialog.setIcon(QMessageBox.Critical)
+            error_dialog.exec_()
+
+    def delete(self):
+        key = self.lineEdit.text()
+        test = self.hash.delete(key)
+        if test == 0 or test is None:
+            error_dialog = QMessageBox()
+            error_dialog.setWindowTitle("Ошибка")
+            error_dialog.setText("Такого ключа не существует")
+            error_dialog.setIcon(QMessageBox.Critical)
+            error_dialog.exec_()
+        else:
+            self.map = test
+            self.plot_table(self.map)
+
+
+    def clear_table(self):
+        self.tableWidget.clear()
+        self.map = [None] * 7
+        self.hash.clear_map()
+        self.tableWidget.setHorizontalHeaderLabels(["Ключ", "Значение", "Хеш"])
 
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

@@ -8,8 +8,11 @@
 
 class HashMap:
     def __init__(self):
-        self.size = 6
+        self.size = 7
         self.map = [None] * self.size
+
+    def get_map(self):
+        return self.map
 
     def _get_hash(self, key):
         hash = 0
@@ -20,36 +23,77 @@ class HashMap:
     def add(self, key, value):
         key_hash = self._get_hash(key)
         key_value = [key, value, key_hash]
-
+        hash2 = key_hash
         if self.map[key_hash] is None:
             self.map[key_hash] = list([key_value])
-            return True
+            return self.map
         else:
-            for pair in self.map[key_hash]:
-                if pair[0] == key:
-                    pair[1] = value
-                    return True
-            self.map[key_hash].append(key_value)
-            return True
+            while True:
+                hash2 = self.secondary_hash(hash2)
+                if self.map[hash2] is None:
+                    self.map[hash2] = list([key_value])
+                    return self.map
+                counter = 0
+                for item in self.map:
+                    if item is not None:
+                        counter += 1
+                        if counter == 7:
+                            print("фул таблица")
+                            return 0
 
-    def get(self, key):
+            # for pair in self.map[key_hash]:
+            #    if pair[0] == key:
+            #        pair[1] = value
+            #        return True
+            # self.map[key_hash].append(key_value)
+            return self.map
+
+    def secondary_hash(self, hash):
+        hash2 = (hash + 2) % 7
+        return hash2
+
+    def clear_map(self):
+        self.map = [None] * self.size
+
+    def get_value(self, key):
         key_hash = self._get_hash(key)
         if self.map[key_hash] is not None:
-            for pair in self.map[key_hash]:
-                if pair[0] == key:
-                    return pair[1]
-        return None
+            array = self.map[key_hash][0]
+            if array[0] == key:
+                return array
+            else:
+                while True:
+                    try:
+                        hash2 = self.secondary_hash(key_hash)
+                        array = self.map[hash2][0]
+                        if array[0] == key:
+                            return array
+                    except:
+                        return 0
 
     def delete(self, key):
         key_hash = self._get_hash(key)
 
-        if self.map[key_hash] is None:
-            return False
-        for i in range(0, len(self.map[key_hash])):
-            if self.map[key_hash][i][0] == key:
-                self.map[key_hash].pop(i)
-                return True
-        return False
+        if self.map[key_hash] is not None:
+            array = self.map[key_hash][0]
+            if array[0] == key:
+                self.map[key_hash] = None
+                return self.map
+            else:
+                while True:
+                    try:
+                        counter = 0
+                        hash2 = self.secondary_hash(key_hash)
+                        array = self.map[hash2][0]
+                        if array[0] == key:
+                            self.map[hash2] = None
+                            return self.map
+                        else:
+                            counter+=1
+                            if counter == 7:
+                                return 0
+                    except:
+                        return 0
 
     def keys(self):
         arr = []
@@ -57,23 +101,3 @@ class HashMap:
             if self.map[i]:
                 arr.append(self.map[i][0])
         return arr
-
-    def print(self):
-        print('---PHONEBOOK----')
-        for item in self.map:
-            if item is not None:
-                print(str(item))
-
-
-h = HashMap()
-h.add('Bobsf', '567-8888')
-h.add('Bobsf', '567-8888')
-h.add('Bobsf', '567-8888')
-h.add('Mingf', '333-8233')
-h.add('Ankif', '293-8625')
-h.add('Aditf', '852-6551')
-h.add('Alicf', '632-4123')
-h.add('Mikef', '567-2188')
-h.add('Adiqf', '777-8888')
-h.print()
-print(h.keys())
